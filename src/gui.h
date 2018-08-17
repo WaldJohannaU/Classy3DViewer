@@ -51,10 +51,10 @@ private:
     GLuint texture3D_mesh_;
     
     // camera intrinsics (used for projection matrix)
-    float f_x_ = 400;
-    float f_y_ = 300;
-    const float window_width_{800};
-    const float window_height_{600};
+    float f_x_ = 574;
+    float f_y_ = 574;
+    float window_width_{640};
+    float window_height_{480};
     
     const float near_{0.1f};
     const float far_{10000};

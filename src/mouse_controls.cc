@@ -11,9 +11,6 @@
 #include "util.h"
 
 GUIMouseControls::GUIMouseControls(): eyeUp_(0,0,0) {
-    // set camera for visualization
-    // pos_offset_control_ = pose_.inverse().block<3,1>(0,3)/1000.0f;
-    // pos_offset_control_temp_ = pos_offset_control;
     view_.setIdentity();
 }
 
@@ -46,8 +43,7 @@ void GUIMouseControls::Reset() {
     vertical_angle_temp_ = vertical_angle_;
     
     delta_pos_.setZero();
-    pos_offset_control_ = Eigen::Vector3f::Zero();
-    pos_offset_control_temp_ = Eigen::Vector3f::Zero();
+    pos_offset_control_temp_ = pos_offset_control_;
 }
 
 void GUIMouseControls::ButtonReleased() {

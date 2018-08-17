@@ -18,7 +18,7 @@ private:
     const float mouse_speed_ = 0.002f;
     
     float horizontal_angle_ = -M_PI;
-    float vertical_angle_ = M_PI/3;
+    float vertical_angle_ = M_PI/4;
     
     float horizontal_angle_temp_;
     float vertical_angle_temp_;
@@ -39,9 +39,9 @@ private:
     bool button_left_{false};
     bool button_right_{false};
     bool button_pressed_{false};
-    float wheel_distance_{400.0f};
+    float wheel_distance_{30.0f};
     Eigen::Vector3f pos_offset_control_temp_{0,0,0};
-    Eigen::Vector3f pos_offset_control_{0,0,0};
+    Eigen::Vector3f pos_offset_control_{4.,2,1.5f};
     
     bool initialized_{false};
 public:
