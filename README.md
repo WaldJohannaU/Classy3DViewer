@@ -9,6 +9,8 @@ mkdir build && cd build
 cmake -DCMAKE_BUILD_TYPE=Release ..
 make
 ```
+### Dependencies:
+Classy3DViewer uses Eigen3, OpenCV, OpenGL, Assimp and NanoGUI. 
 
-Notes: 
+### Notes:
 An example 3D mesh, point cloud and surfel map can be found in the [data](https://github.com/WaldJohannaU/Classy3DViewer/tree/master/data) folder. Point Clouds and surfel maps are loaded with [tinyply](https://github.com/ddiakopoulos/tinyply).
