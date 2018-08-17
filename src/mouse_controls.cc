@@ -10,6 +10,12 @@
 #include "mouse_controls.h"
 #include "util.h"
 
+GUIMouseControls::GUIMouseControls() {
+    // set camera for visualization
+    // pos_offset_control_ = pose_.inverse().block<3,1>(0,3)/1000.0f;
+    // pos_offset_control_temp_ = mouse_controls_.pos_offset_control;
+}
+
 void GUIMouseControls::Update() {
     if (button_left_) {
         UpdateLeft();
@@ -32,15 +38,6 @@ void GUIMouseControls::Update() {
     look_at_controls_ = position_controls + 20 * direction;
     position_controls -= wheel_distance_ * 0.1f * direction;
     view_ = lookAt(position_controls, look_at_controls_, eyeUp_controls_);
-    
-    // For depth rendering.
-    Eigen::Matrix4f pose = Eigen::Matrix4f::Identity();
-    pose.block<3,1>(0,3) /= 1000.0f;
-    Eigen::Vector3f camera_position = pose.block<3,1>(0,3);
-    Eigen::Vector3f camera_direction(0, 0, 1);
-    camera_direction = pose.block<3,3>(0,0) * camera_direction;
-    Eigen::Vector3f camera_right = pose.block<3,3>(0,0) * Eigen::Vector3f(-1, 0, 0);
-    Eigen::Vector3f camera_eye_up = camera_right.cross(camera_direction);
 }
 
 void GUIMouseControls::Reset() {
@@ -79,4 +76,28 @@ void GUIMouseControls::Pressed(const nanogui::Vector2i &position) {
         delta_pos_ = current_pos_ - previous_pos_;
         initialized_ = true;
     }
+}
+
+bool GUIMouseControls::ScrollCallbackEvent(double x, double y) {
+    wheel_direction_ += y;
+    return true;
+}
+
+bool GUIMouseControls::MouseButtonEvent(const nanogui::Vector2i &position, int button, bool down, int modifiers) {
+    current_pos_[0] = static_cast<float>(position.x());
+    current_pos_[1] = static_cast<float>(position.y());
+    
+    if (down) {
+        button_pressed_ = true;
+    } else {
+        ButtonReleased();
+    }
+    if (button == GLFW_MOUSE_BUTTON_1) {
+        button_left_ = button_pressed_;
+    }
+    else if (button == GLFW_MOUSE_BUTTON_2) {
+        button_right_ = button_pressed_;
+    }
+    previous_pos_ = current_pos_;
+    return true;
 }

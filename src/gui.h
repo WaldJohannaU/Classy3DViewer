@@ -30,15 +30,14 @@
 class GUIApplication: public nanogui::Screen {
 private:
     // Window height and width.
-    const float window_width_{800};
-    const float window_height_{600};
+    float window_width_{800};
+    float window_height_{600};
     
     // camera intrinsics (used for projection matrix)
     float f_x_ = 0;
     float f_y_ = 0;
     const float image_width_{224};
     const float image_height_{172};
-    float image_aspect_ratio_{0};
     
     const float near_{0.1f};
     const float far_{10000};
@@ -77,9 +76,21 @@ public:
     GUIApplication();
     ~GUIApplication();
     
+    virtual bool keyboardEvent(int key, int scancode, int action, int modifiers) override;
+    virtual bool mouseMotionEvent(const nanogui::Vector2i &position, const nanogui::Vector2i &rel, int button, int modifiers) override;
+    virtual bool mouseButtonEvent(const nanogui::Vector2i &position, int button, bool down, int modifiers) override;
+    virtual bool mouseDragEvent(const nanogui::Vector2i &position, const nanogui::Vector2i &rel, int button, int modifiers) override;
+    virtual bool scrollCallbackEvent(double x, double y) override;
+    virtual bool resizeCallbackEvent(int width, int height) override;
+    
+    virtual bool cursorPosCallbackEvent(double x, double y);
+    virtual bool mouseButtonCallbackEvent(int button, int action, int modifiers);
+    virtual bool keyCallbackEvent(int key, int scancode, int action, int mods);
+    virtual bool charCallbackEvent(unsigned int codepoint);
+    virtual bool dropCallbackEvent(int count, const char **filenames) override;
+    
     virtual void draw(NVGcontext *ctx) override;
     virtual void drawContents() override;
-    virtual bool keyboardEvent(int key, int scancode, int action, int modifiers) override;
 };
 
 #endif

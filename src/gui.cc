@@ -164,3 +164,69 @@ bool GUIApplication::keyboardEvent(int key, int scancode, int action, int modifi
     }
     return false;
 }
+
+bool GUIApplication::mouseButtonEvent(const nanogui::Vector2i &position, int button, bool down, int modifiers) {
+    if (!nanogui::Screen::mouseButtonEvent(position, button, down, modifiers)) {
+        return mouse_controls_.MouseButtonEvent(position, button, down, modifiers);;
+    }
+    return false;
+}
+
+bool GUIApplication::mouseMotionEvent(const nanogui::Vector2i &position, const nanogui::Vector2i &rel, int button, int modifiers) {
+    if (!nanogui::Screen::mouseMotionEvent(position, rel, button, modifiers)) {
+        // Get mouse position
+        mouse_controls_.Pressed(position);
+        return true;
+    }
+    return false;
+}
+
+bool GUIApplication::mouseDragEvent(const nanogui::Vector2i &position, const nanogui::Vector2i &rel, int button, int modifiers) {
+    nanogui::Screen::mouseDragEvent(position, rel, button, modifiers);
+    return true;
+}
+
+bool GUIApplication::scrollCallbackEvent(double x, double y) {
+    if (!nanogui::Screen::scrollCallbackEvent(x, y)) {
+        return mouse_controls_.ScrollCallbackEvent(x, y);
+    }
+    return false;
+}
+
+bool GUIApplication::resizeCallbackEvent(int width, int height) {
+    nanogui::Screen::resizeCallbackEvent(width, height);
+    // is called if function is declared virtual in nanogui
+    window_width_ = width;
+    window_height_ = height;
+    return true;
+}
+
+bool GUIApplication::cursorPosCallbackEvent(double x, double y) {
+    // not called when virtual is not in the nanogui
+    nanogui::Screen::cursorPosCallbackEvent(x, y);
+    return true;
+}
+
+bool GUIApplication::mouseButtonCallbackEvent(int button, int action, int modifiers) {
+    // not called when virtual is not in the nanogui
+    nanogui::Screen::mouseButtonCallbackEvent(button, action, modifiers);
+    return true;
+}
+
+bool GUIApplication::keyCallbackEvent(int key, int scancode, int action, int mods) {
+    // not called when virtual is not in the nanogui
+    nanogui::Screen::keyCallbackEvent(key, scancode, action, mods);
+    return true;
+}
+
+bool GUIApplication::charCallbackEvent(unsigned int codepoint) {
+    // not called when virtual is not in the nanogui
+    nanogui::Screen::charCallbackEvent(codepoint);
+    return true;
+}
+
+bool GUIApplication::dropCallbackEvent(int count, const char **filenames) {
+    // is called if function is declared virtual in nanogui
+    nanogui::Screen::dropCallbackEvent(count, filenames);
+    return true;
+}

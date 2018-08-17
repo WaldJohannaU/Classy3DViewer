@@ -47,12 +47,15 @@ private:
 public:
     Eigen::Matrix4f view_;
 
+    GUIMouseControls();
     void Update();
     void Reset();
     void ButtonReleased();
     void UpdateLeft();
     void UpdateRight(const Eigen::Vector3f& eyeup_controls, const Eigen::Vector3f& right);
     void Pressed(const nanogui::Vector2i &position);
+    bool ScrollCallbackEvent(double x, double y);
+    bool MouseButtonEvent(const nanogui::Vector2i &position, int button, bool down, int modifiers);
 };
 
 #endif
