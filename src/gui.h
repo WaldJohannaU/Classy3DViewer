@@ -24,15 +24,7 @@
 #include <nanogui/window.h>
 #include <opencv2/opencv.hpp>
 
-#include "dataset_loader.h"
-
-class Shader {
-private:
-    bool initalized_ = false;
-public:
-    nanogui::GLShader shader_;
-    bool Init(const std::string& name, const std::string& vertex, const std::string fragment);
-};
+#include "shader.h"
 
 class GUIApplication: public nanogui::Screen {
 private:
@@ -42,11 +34,9 @@ private:
     std::string vertex_shader_2D_{""};
     std::string fragment_shader_2D_{""};
     
-    Shader shader_texture_;
+    Shader2D shader_texture_;
     // Initialize GUI.
     void InitMainGUI(nanogui::Window* window);
-    // Initializes Shader Code.
-    void InitShaderCode();
     // Prepare shader and initialize buffers for 2D texture rendering.
     void Init2DTexture();
     // Renders 2D texture.

@@ -26,6 +26,8 @@ SET(PROJECT_INCLUDE_DIRS
 INCLUDE_DIRECTORIES(${PROJECT_INCLUDE_DIRS})
 
 SET(SRCS src/main.cc
+	src/shader.h
+	src/shader.cc
 	src/gui.h
 	src/gui.cc)
 

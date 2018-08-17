@@ -25,14 +25,6 @@
 
 #include "gui.h"
 
-bool Shader::Init(const std::string& name, const std::string& vertex, const std::string fragment) {
-    if (!initalized_) {
-        shader_.init(name, vertex, fragment);
-        initalized_ = true;
-    }
-    return initalized_;
-}
-
 void GUIApplication::InitMainGUI(nanogui::Window* window) {
     window->setPosition(nanogui::Vector2i(15, 15));
     window->setLayout(new nanogui::GroupLayout());
@@ -40,25 +32,6 @@ void GUIApplication::InitMainGUI(nanogui::Window* window) {
     nanogui::Button* b = new nanogui::Button(window, "Button");
         b->setCallback([this](void) {
     });
-}
-
-void GUIApplication::InitShaderCode() {
-    vertex_shader_2D_ = "#version 330\n"
-    "layout(location = 0) in vec3 position;\n"
-    "layout(location = 1) in vec2 vertexUV;\n"
-    "out vec2 UV;\n"
-    "void main() {\n"
-    "    gl_Position = vec4(position, 1.0);\n"
-    "    UV = vertexUV;\n"
-    "}";
-    
-    fragment_shader_2D_ = "#version 330\n"
-    "in vec2 UV;\n"
-    "uniform sampler2D myTextureSampler;\n"
-    "out vec4 color;\n"
-    "void main() {\n"
-    "    color = vec4(texture(myTextureSampler, UV).rgb, 1.0);\n"
-    "}";
 }
 
 void GUIApplication::Init2DTexture() {
@@ -72,7 +45,7 @@ void GUIApplication::Init2DTexture() {
     Eigen::Map<nanogui::MatrixXf> v_uvs_flipped(uvs_flipped,2,4);
     Eigen::Map<nanogui::MatrixXu> v_indices(indices,3,2);
     
-    shader_texture_.Init("texture_shader", vertex_shader_2D_, fragment_shader_2D_);
+    shader_texture_.Init("texture_shader");
     shader_texture_.shader_.bind();
     shader_texture_.shader_.uploadIndices(v_indices);
     shader_texture_.shader_.uploadAttrib("position", v_vertices);
@@ -103,7 +76,6 @@ GUIApplication::GUIApplication(): nanogui::Screen(Eigen::Vector2i(100, 100), "Cl
     this->setSize(nanogui::Vector2i(window_width_, window_height_));
     nanogui::Window *window = new nanogui::Window(this, "GUI");
     InitMainGUI(window);
-    InitShaderCode();
     Init2DTexture();
     performLayout();
 }
