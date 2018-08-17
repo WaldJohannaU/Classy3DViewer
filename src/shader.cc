@@ -54,9 +54,9 @@ void Shader2D::Init(const std::string& name) {
     }
 }
 
-void Shader3Dcolored::Init(const std::string& name) {
+void Shader3DColored::Init(const std::string& name) {
     if (!initalized_) {
-        const std::string& vertex = "#version 330\n"
+        const std::string vertex{"#version 330\n"
         "uniform mat4 model_view_projection;\n"
         "layout(location = 0) in vec3 position;\n"
         "layout(location = 1) in vec3 color;\n"
@@ -64,14 +64,43 @@ void Shader3Dcolored::Init(const std::string& name) {
         "void main() {\n"
         "    gl_Position = model_view_projection * vec4(position, 1.0);\n"
         "    colorV = color;\n"
-        "}";
+            "}"};
         
-        const std::string& fragment = "#version 330\n"
+        const std::string fragment{"#version 330\n"
         "in vec3 colorV;\n"
         "out vec4 color;\n"
         "void main() {\n"
         "    color = vec4(colorV, 1.0);\n"
-        "}";
+        "}"};
+        
+        shader_.init(name, vertex, fragment);
+        initalized_ = true;
+    }
+}
+
+void Shader3DTextured::Init(const std::string& name) {
+    if (!initalized_) {
+        const std::string& vertex{"#version 330\n"
+            "uniform mat4 model_view_projection;\n"
+            "layout(location = 0) in vec3 position;\n"
+            "layout(location = 1) in vec2 vertexUV;\n"
+            "layout(location = 2) in vec3 color;\n"
+            "out vec3 colorV;\n"
+            "out vec2 UV;\n"
+            "void main() {\n"
+            "    gl_Position = model_view_projection * vec4(position, 1.0);\n"
+            "    colorV = color;\n"
+            "    UV = vec2(vertexUV.x, 1 - vertexUV.y);\n"
+            "}"};
+        
+        const std::string& fragment{"#version 330\n"
+            "in vec2 UV;\n"
+            "in vec3 colorV;\n"
+            "uniform sampler2D myTextureSampler;\n"
+            "out vec4 color;\n"
+            "void main() {\n"
+            "    color = vec4(texture(myTextureSampler, UV).rgb, 1.0);\n"
+            "}"};
         
         shader_.init(name, vertex, fragment);
         initalized_ = true;

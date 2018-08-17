@@ -10,10 +10,11 @@
 #include "mouse_controls.h"
 #include "util.h"
 
-GUIMouseControls::GUIMouseControls() {
+GUIMouseControls::GUIMouseControls(): eyeUp_(0,0,0) {
     // set camera for visualization
     // pos_offset_control_ = pose_.inverse().block<3,1>(0,3)/1000.0f;
-    // pos_offset_control_temp_ = mouse_controls_.pos_offset_control;
+    // pos_offset_control_temp_ = pos_offset_control;
+    view_.setIdentity();
 }
 
 void GUIMouseControls::Update() {
@@ -37,7 +38,7 @@ void GUIMouseControls::Update() {
     Eigen::Vector3f position_controls = pos_offset_control_temp_;
     look_at_controls_ = position_controls + 20 * direction;
     position_controls -= wheel_distance_ * 0.1f * direction;
-    view_ = lookAt(position_controls, look_at_controls_, eyeUp_controls_);
+    view_ = C3DV_camera::lookAt(position_controls, look_at_controls_, eyeUp_controls_);
 }
 
 void GUIMouseControls::Reset() {

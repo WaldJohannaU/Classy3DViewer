@@ -29,6 +29,13 @@
 
 constexpr float kSqrt2 = 1.414214f;
 
+namespace C3DV_graphics {
+
+bool loadAssImp(const char* path, std::vector<unsigned int>& indices, std::vector<float>& vertices, std::vector<float>& uvs, std::vector<float>& normals);
+bool BindCVMat2GLTexture(const cv::Mat& image, GLuint& imageTexture, bool conv);
+
+};
+
 class GUIApplication: public nanogui::Screen {
 private:
     // Selection what to reder.
@@ -41,16 +48,13 @@ private:
     std::string file_point_cloud_{""};
     std::string file_surfel_map_{""};
     std::string file_3D_mesh_{""};
-
-    // Window height and width.
-    float window_width_{800};
-    float window_height_{600};
+    GLuint texture3D_mesh_;
     
     // camera intrinsics (used for projection matrix)
-    float f_x_ = 100;
-    float f_y_ = 100;
-    const float image_width_{224};
-    const float image_height_{172};
+    float f_x_ = 400;
+    float f_y_ = 300;
+    const float window_width_{800};
+    const float window_height_{600};
     
     const float near_{0.1f};
     const float far_{10000};
@@ -73,10 +77,10 @@ private:
     int indices_3D_mesh_{0};
 
     // Shaders for rendering.
-    Shader3Dcolored shader_coordinate_system_;
-    Shader3Dcolored shader_3D_cloud_;
+    Shader3DColored shader_coordinate_system_;
+    Shader3DColored shader_3D_cloud_;
     Shader shader_3D_surfels_;
-    Shader3Dcolored shader_3D_mesh_;
+    Shader3DTextured shader_3D_mesh_;
     Shader2D shader_texture_;
 
     // Initialize GUI.

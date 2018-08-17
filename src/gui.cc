@@ -28,28 +28,115 @@
 #include "tinyply.h"
 #include "util.h"
 
+namespace C3DV_graphics {
+
+bool loadAssImp(const char* path,
+                std::vector<unsigned int>& indices,
+                std::vector<float>& vertices,
+                std::vector<float>& uvs,
+                std::vector<float>& normals) {
+    Assimp::Importer importer;
+    
+    std::ifstream f(path);
+    if (!f.good())
+        return false;
+    
+    const aiScene* scene = importer.ReadFile(path, aiProcess_Triangulate);
+    if (!scene) {
+        std::cout << importer.GetErrorString() << std::endl;
+        getchar();
+        return false;
+    }
+    const aiMesh* mesh = scene->mMeshes[0];
+    
+    // Fill vertices positions
+    vertices.reserve(mesh->mNumVertices*3);
+    for (unsigned int i = 0; i < mesh->mNumVertices; i++){
+        aiVector3D pos = mesh->mVertices[i];
+        vertices.push_back(pos.x);
+        vertices.push_back(pos.y);
+        vertices.push_back(pos.z);
+    }
+    
+    // Fill vertices texture coordinates
+    uvs.reserve(mesh->mNumVertices);
+    if (mesh->mTextureCoords[0] != nullptr) {
+        for (unsigned int i = 0; i < mesh->mNumVertices; i++) {
+            aiVector3D UVW = mesh->mTextureCoords[0][i]; // Assume only 1 set of UV coords; AssImp supports 8 UV sets.
+            uvs.push_back(UVW.x);
+            uvs.push_back(UVW.y);
+        }
+    }
+    
+    // Fill vertices normals
+    normals.reserve(mesh->mNumVertices);
+    for (unsigned int i=0; i < mesh->mNumVertices; i++){
+        aiVector3D n = mesh->mNormals[i];
+        normals.push_back(n.x);
+        normals.push_back(n.y);
+        normals.push_back(n.z);
+    }
+    
+    // Fill face indices
+    indices.reserve(3*mesh->mNumFaces);
+    for (unsigned int i = 0; i < mesh->mNumFaces; i++){
+        // Assume the model has only triangles.
+        indices.push_back(mesh->mFaces[i].mIndices[0]);
+        indices.push_back(mesh->mFaces[i].mIndices[1]);
+        indices.push_back(mesh->mFaces[i].mIndices[2]);
+    }
+    return true;
+}
+
+bool BindCVMat2GLTexture(const cv::Mat& image, GLuint& imageTexture, bool conv) {
+    if (!image.empty()) {
+        glDeleteTextures(1, &imageTexture);
+        glGenTextures(1, &imageTexture);
+        glBindTexture(GL_TEXTURE_2D, imageTexture);
+        
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        
+        glTexImage2D(GL_TEXTURE_2D,
+                     0,                   // Pyramid level (for mip-mapping) - 0 is the top level
+                     GL_RGB,              // Internal colour format to convert to
+                     image.cols,
+                     image.rows,
+                     0,                   // Border width in pixels (can either be 1 or 0)
+                     GL_BGR,              // Input image format (i.e. GL_RGB, GL_RGBA, GL_BGR etc.)
+                     GL_UNSIGNED_BYTE,    // Image data type
+                     image.ptr());        // The actual image data itself
+        return true;
+    } else return false;
+}
+
+};
+
 void GUIApplication::InitMainGUI(nanogui::Window* window) {
     window->setPosition(nanogui::Vector2i(15, 15));
     window->setLayout(new nanogui::GroupLayout());
     
-    nanogui::Button* b = new nanogui::Button(window, "Load Point Cloud");
+    nanogui::Button* b = new nanogui::Button(window, "Point Cloud");
     b->setCallback([this](void) {
-        file_point_cloud_ = nanogui::file_dialog({ {"ply", "Point Cloud"} }, false);
+        file_point_cloud_ = nanogui::file_dialog({ {"ply", "PLY File"} }, false);
         render_type_ = RenderType::PointCloud;
         Init3DCloud();
     });
 
-    b = new nanogui::Button(window, "Load Surfel Map");
+    b = new nanogui::Button(window, "Surfel Map");
     b->setCallback([this](void) {
         render_type_ = RenderType::SurfelMap;
-        file_surfel_map_ = nanogui::file_dialog({ {"ply", "Point Cloud"} }, false);
+        file_surfel_map_ = nanogui::file_dialog({ {"ply", "PLY File"} }, false);
         Init3DSurfels();
     });
 
-    b = new nanogui::Button(window, "Load 3D Mesh");
+    b = new nanogui::Button(window, "3D Mesh");
     b->setCallback([this](void) {
         render_type_ = RenderType::Mesh3D;
-        file_3D_mesh_ = nanogui::file_dialog({ {"obj", "Obj. 3D Model"}, {"ply", "Polygon File"} }, false);
+        file_3D_mesh_ = nanogui::file_dialog({ {"obj", "OBJ File"} }, false);
+        std::string texture_file = nanogui::file_dialog({ {"png", "PNG File"}, {"jpg", "JPG File"} }, false);
+        cv::Mat texture_mat = cv::imread(texture_file);
+        C3DV_graphics::BindCVMat2GLTexture(texture_mat, texture3D_mesh_, true);
         Init3DMesh();
     });
 }
@@ -256,6 +343,25 @@ void GUIApplication::Init3DSurfels() {
 }
 
 void GUIApplication::Init3DMesh() {
+    std::vector<unsigned int> indices;
+    std::vector<float> vertices;
+    std::vector<float> uvs;
+    std::vector<float> normals;
+    
+    C3DV_graphics::loadAssImp(file_3D_mesh_.c_str(), indices, vertices, uvs, normals);
+    
+    indices_3D_mesh_ = indices.size() / 3;
+    
+    Eigen::Map<nanogui::MatrixXf> eigen_vertices(vertices.data(), 3, (vertices.size() / 3));
+    Eigen::Map<nanogui::MatrixXf> eigen_normals(normals.data(), 3, (normals.size() / 3));
+    Eigen::Map<nanogui::MatrixXf> eigen_uv(uvs.data(), 2, (uvs.size() / 2));
+    Eigen::Map<nanogui::MatrixXu> eigen_indices(indices.data(), 3, (indices.size() / 3));
+    
+    shader_3D_mesh_.Init("shader_mesh3D");
+    shader_3D_mesh_.shader_.bind();
+    shader_3D_mesh_.shader_.uploadIndices(eigen_indices);
+    shader_3D_mesh_.shader_.uploadAttrib("position", eigen_vertices);
+    shader_3D_mesh_.shader_.uploadAttrib("vertexUV", eigen_uv);
 }
 
 void GUIApplication::Render2DTexture() {
@@ -288,28 +394,30 @@ void GUIApplication::Render3DSurfels() {
 }
 
 void GUIApplication::Render3DMesh() {
-    /*shader_3D_cloud_.shader_.bind();
-    shader_3D_cloud_.shader_.setUniform("model_view_projection", model_view_projection_);
-    shader_3D_cloud_.shader_.drawArray(GL_POINTS, 0, indices_3D_cloud_);*/
+    glBindTexture(GL_TEXTURE_2D, texture3D_mesh_);
+    shader_3D_mesh_.shader_.bind();
+    shader_3D_mesh_.shader_.setUniform("model_view_projection", model_view_projection_);
+    shader_3D_mesh_.shader_.drawIndexed(GL_TRIANGLES, 0, indices_3D_mesh_);
 }
 
 void GUIApplication::UpdatePose() {
     mouse_controls_.Update();
     
     // Update pose for rendering.
-    const double gui_camera_fovy_x = 2 * atan((image_width_)/(2*f_x_));
-    const double gui_camera_fovy_y = 2 * atan((image_height_)/(2*f_y_));
-    projection_ = perspective<Eigen::Matrix4f::Scalar>(gui_camera_fovy_x, gui_camera_fovy_y, near_, far_);
+    const double gui_camera_fovy_x = 2 * atan((window_width_)/(2*f_x_));
+    const double gui_camera_fovy_y = 2 * atan((window_height_)/(2*f_y_));
+    projection_ = C3DV_camera::perspective<Eigen::Matrix4f::Scalar>(gui_camera_fovy_x, gui_camera_fovy_y, near_, far_);
     model_view_ = mouse_controls_.view_;
     model_view_projection_ = projection_ * model_view_;
 }
 
 GUIApplication::GUIApplication(): nanogui::Screen(Eigen::Vector2i(100, 100), "Classy3DViewer") {
     this->setSize(nanogui::Vector2i(window_width_, window_height_));
-    nanogui::Window *window = new nanogui::Window(this, "GUI");
+    nanogui::Window *window = new nanogui::Window(this, "Load Data");
     InitMainGUI(window);
     InitShaders();
     performLayout();
+    mouse_controls_.Reset();
 }
 
 GUIApplication::~GUIApplication() {

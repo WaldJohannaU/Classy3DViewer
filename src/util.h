@@ -27,85 +27,7 @@
 #include <assimp/scene.h>           // Output data structure
 #include <assimp/postprocess.h>     // Post processing fla
 
-/*bool loadAssImp(const char* path,
-                std::vector<unsigned int>& indices,
-                std::vector<float>& vertices,
-                std::vector<float>& uvs,
-                std::vector<float>& normals) {
-    Assimp::Importer importer;
-    
-    std::ifstream f(path);
-    if (!f.good())
-        return false;
-    
-    const aiScene* scene = importer.ReadFile(path, aiProcess_Triangulate);
-    if (!scene) {
-        std::cout << importer.GetErrorString() << std::endl;
-        getchar();
-        return false;
-    }
-    const aiMesh* mesh = scene->mMeshes[0];
-    
-    // Fill vertices positions
-    vertices.reserve(mesh->mNumVertices*3);
-    for (unsigned int i = 0; i < mesh->mNumVertices; i++){
-        aiVector3D pos = mesh->mVertices[i];
-        vertices.push_back(pos.x);
-        vertices.push_back(pos.y);
-        vertices.push_back(pos.z);
-    }
-        
-    // Fill vertices texture coordinates
-    uvs.reserve(mesh->mNumVertices);
-    if (mesh->mTextureCoords[0] != nullptr) {
-        for (unsigned int i = 0; i < mesh->mNumVertices; i++) {
-            aiVector3D UVW = mesh->mTextureCoords[0][i]; // Assume only 1 set of UV coords; AssImp supports 8 UV sets.
-            uvs.push_back(UVW.x);
-            uvs.push_back(UVW.y);
-        }
-    }
-
-    // Fill vertices normals
-    normals.reserve(mesh->mNumVertices);
-    for (unsigned int i=0; i < mesh->mNumVertices; i++){
-        aiVector3D n = mesh->mNormals[i];
-        normals.push_back(n.x);
-        normals.push_back(n.y);
-        normals.push_back(n.z);
-    }
-    
-    // Fill face indices
-    indices.reserve(3*mesh->mNumFaces);
-    for (unsigned int i = 0; i < mesh->mNumFaces; i++){
-        // Assume the model has only triangles.
-        indices.push_back(mesh->mFaces[i].mIndices[0]);
-        indices.push_back(mesh->mFaces[i].mIndices[1]);
-        indices.push_back(mesh->mFaces[i].mIndices[2]);
-    }
-    return true;
-}*/
-
-/*bool BindCVMat2GLTexture(const cv::Mat& image, GLuint& imageTexture, bool conv) {
-    if (!image.empty()) {
-        glDeleteTextures(1, &imageTexture);
-        glGenTextures(1, &imageTexture);
-        glBindTexture(GL_TEXTURE_2D, imageTexture);
-        
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-        // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        
-        glTexImage2D(GL_TEXTURE_2D,
-                     0,                   // Pyramid level (for mip-mapping) - 0 is the top level
-                     GL_RGB,              // Internal colour format to convert to
-                     image.cols,
-                     image.rows,
-                     0,                   // Border width in pixels (can either be 1 or 0)
-                     GL_BGR,              // Input image format (i.e. GL_RGB, GL_RGBA, GL_BGR etc.)
-                     GL_UNSIGNED_BYTE,    // Image data type
-                     image.ptr());        // The actual image data itself
-        return true;
-    } else return false;
-}*/
+namespace C3DV_camera {
 
 template<class T>
 Eigen::Matrix<T,4,4> perspective(double fovy_x, double fovy_y, double zNear, double zFar) {
@@ -118,7 +40,6 @@ Eigen::Matrix<T,4,4> perspective(double fovy_x, double fovy_y, double zNear, dou
     res(2,3) = -(2.0 * zFar * zNear) / (zFar - zNear);
     return res;
 }
-
 
 template<class T>
 Eigen::Matrix<T,4,4> lookAt(Eigen::Matrix<T,3,1> const& eye,
@@ -137,6 +58,8 @@ Eigen::Matrix<T,4,4> lookAt(Eigen::Matrix<T,3,1> const& eye,
     
     return res;
 }
+
+};
 
 #endif  // _H_UTIL_
 

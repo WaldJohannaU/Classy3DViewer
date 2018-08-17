@@ -28,7 +28,12 @@ public:
     void Init(const std::string& name);
 };
 
-class Shader3Dcolored: public Shader {
+class Shader3DColored: public Shader {
+public:
+    void Init(const std::string& name);
+};
+
+class Shader3DTextured: public Shader {
 public:
     void Init(const std::string& name);
 };
