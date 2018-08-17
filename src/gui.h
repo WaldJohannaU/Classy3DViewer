@@ -27,8 +27,21 @@
 #include "mouse_controls.h"
 #include "shader.h"
 
+constexpr float kSqrt2 = 1.414214f;
+
 class GUIApplication: public nanogui::Screen {
 private:
+    // Selection what to reder.
+    enum class RenderType {
+       None = 0, PointCloud, SurfelMap, Mesh3D
+    };
+    RenderType render_type_{RenderType::SurfelMap};
+    
+    // This file is set with nanogui.
+    std::string file_point_cloud_{""};
+    std::string file_surfel_map_{""};
+    std::string file_3D_mesh_{""};
+
     // Window height and width.
     float window_width_{800};
     float window_height_{600};
@@ -52,12 +65,18 @@ private:
     Eigen::Matrix4f model_view_projection_;
     Eigen::Matrix4f projection_;
     Eigen::Matrix4f model_view_;
-
+    
     // For rendering the indices of the coordinate system.
-    int index_indices_coordinate_system_ = 0;
+    int indices_coordinate_system_{0};
+    int indices_3D_cloud_{0};
+    int indices_3D_surfels_{0};
+    int indices_3D_mesh_{0};
 
     // Shaders for rendering.
     Shader3Dcolored shader_coordinate_system_;
+    Shader3Dcolored shader_3D_cloud_;
+    Shader shader_3D_surfels_;
+    Shader3Dcolored shader_3D_mesh_;
     Shader2D shader_texture_;
 
     // Initialize GUI.
@@ -66,10 +85,22 @@ private:
     void InitShaders();
     // Init Shader for drawing a coordiante system.
     void InitCoordinateSystem();
+    // Init Shader for drawing a 3D cloud.
+    void Init3DCloud();
+    // Init Shader for drawing a 3D surfels.
+    void Init3DSurfels();
+    // Init Shader for drawing a 3D mesh.
+    void Init3DMesh();
     // Renders 2D texture.
     void Render2DTexture();
     // Renders Coordinate System.
     void RenderCoordinateSystem();
+    // Render 3D model.
+    void Render3DCloud();
+    // Render 3D surfel map.
+    void Render3DSurfels();
+    // Render 3D mesh.
+    void Render3DMesh();
     // Computes current poses for rendering.
     void UpdatePose();
 public:

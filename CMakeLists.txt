@@ -32,7 +32,10 @@ SET(SRCS src/main.cc
 	src/gui.cc
 	src/util.h
 	src/mouse_controls.h
-	src/mouse_controls.cc)
+	src/mouse_controls.cc
+	src/tinyply.h
+	src/tinyply.cpp
+	src/tiny_obj_loader.h)
 
 SET(PROJECT_LIBRARIES 
 	${OpenCV_LIBS} 
