@@ -34,8 +34,8 @@ private:
     float window_height_{600};
     
     // camera intrinsics (used for projection matrix)
-    float f_x_ = 0;
-    float f_y_ = 0;
+    float f_x_ = 100;
+    float f_y_ = 100;
     const float image_width_{224};
     const float image_height_{172};
     
