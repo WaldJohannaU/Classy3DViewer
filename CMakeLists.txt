@@ -30,6 +30,7 @@ SET(SRCS src/main.cc
 	src/shader.cc
 	src/gui.h
 	src/gui.cc
+	src/util.h
 	src/mouse_controls.h
 	src/mouse_controls.cc)
 

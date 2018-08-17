@@ -33,6 +33,7 @@ void Shader2D::Init(const std::string& name) {
         "void main() {\n"
         "    color = vec4(texture(myTextureSampler, UV).rgb, 1.0);\n"
         "}";
+        
         shader_.init(name, vertex, fragment);
         
         unsigned int indices[] = {0, 1, 2, 2, 3, 0};
@@ -49,6 +50,30 @@ void Shader2D::Init(const std::string& name) {
         shader_.uploadIndices(v_indices);
         shader_.uploadAttrib("position", v_vertices);
         shader_.uploadAttrib("vertexUV", v_uvs);
+        initalized_ = true;
+    }
+}
+
+void Shader3Dcolored::Init(const std::string& name) {
+    if (!initalized_) {
+        const std::string& vertex = "#version 330\n"
+        "uniform mat4 model_view_projection;\n"
+        "layout(location = 0) in vec3 position;\n"
+        "layout(location = 1) in vec3 color;\n"
+        "out vec3 colorV;\n"
+        "void main() {\n"
+        "    gl_Position = model_view_projection * vec4(position, 1.0);\n"
+        "    colorV = color;\n"
+        "}";
+        
+        const std::string& fragment = "#version 330\n"
+        "in vec3 colorV;\n"
+        "out vec4 color;\n"
+        "void main() {\n"
+        "    color = vec4(colorV, 1.0);\n"
+        "}";
+        
+        shader_.init(name, vertex, fragment);
         initalized_ = true;
     }
 }

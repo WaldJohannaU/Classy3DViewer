@@ -28,18 +28,26 @@ private:
     Eigen::Vector2f previous_pos_;
     Eigen::Vector2f init_pos_;
     Eigen::Vector2f end_pos_;
+   
+    Eigen::Vector3f eyeUp_;
+    Eigen::Vector3f eyeUp_controls_; // Head is up (set to 0,-1,0 to look upside-down)
+    Eigen::Vector3f look_at_controls_;
+    Eigen::Vector3f look_at_camera_;
     
     // mouse controls:
     int wheel_direction_{0};
     bool button_left_{false};
     bool button_right_{false};
     bool button_pressed_{false};
-    float wheel_distance{400.0f};
+    float wheel_distance_{400.0f};
     Eigen::Vector3f pos_offset_control_temp_{0,0,0};
     Eigen::Vector3f pos_offset_control_{0,0,0};
     
     bool initialized_{false};
 public:
+    Eigen::Matrix4f view_;
+
+    void Update();
     void Reset();
     void ButtonReleased();
     void UpdateLeft();

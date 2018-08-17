@@ -8,6 +8,40 @@
  ********************************************************/
 
 #include "mouse_controls.h"
+#include "util.h"
+
+void GUIMouseControls::Update() {
+    if (button_left_) {
+        UpdateLeft();
+    }
+    if (wheel_direction_ != 0) {
+        wheel_distance_ += wheel_direction_;
+        wheel_direction_ = 0;
+    }
+    // Direction: Spherical coordinates to Cartesian coordinates conversion
+    Eigen::Vector3f direction(cos(vertical_angle_temp_) * sin(horizontal_angle_temp_),
+                              sin(vertical_angle_temp_),
+                              cos(vertical_angle_temp_) * cos(horizontal_angle_temp_));
+    Eigen::Vector3f right = Eigen::Vector3f(sin(horizontal_angle_temp_ - M_PI/2.0f), 0, cos(horizontal_angle_temp_ - M_PI/2.0f));
+    eyeUp_controls_ = right.cross(direction);
+    if (button_right_) {
+        UpdateRight(eyeUp_controls_, right);
+    }
+    // Right vector
+    Eigen::Vector3f position_controls = pos_offset_control_temp_;
+    look_at_controls_ = position_controls + 20 * direction;
+    position_controls -= wheel_distance_ * 0.1f * direction;
+    view_ = lookAt(position_controls, look_at_controls_, eyeUp_controls_);
+    
+    // For depth rendering.
+    Eigen::Matrix4f pose = Eigen::Matrix4f::Identity();
+    pose.block<3,1>(0,3) /= 1000.0f;
+    Eigen::Vector3f camera_position = pose.block<3,1>(0,3);
+    Eigen::Vector3f camera_direction(0, 0, 1);
+    camera_direction = pose.block<3,3>(0,0) * camera_direction;
+    Eigen::Vector3f camera_right = pose.block<3,3>(0,0) * Eigen::Vector3f(-1, 0, 0);
+    Eigen::Vector3f camera_eye_up = camera_right.cross(camera_direction);
+}
 
 void GUIMouseControls::Reset() {
     horizontal_angle_temp_ = horizontal_angle_;

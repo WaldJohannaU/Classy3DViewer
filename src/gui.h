@@ -24,6 +24,7 @@
 #include <nanogui/window.h>
 #include <opencv2/opencv.hpp>
 
+#include "mouse_controls.h"
 #include "shader.h"
 
 class GUIApplication: public nanogui::Screen {
@@ -31,18 +32,47 @@ private:
     // Window height and width.
     const float window_width_{800};
     const float window_height_{600};
+    
+    // camera intrinsics (used for projection matrix)
+    float f_x_ = 0;
+    float f_y_ = 0;
+    const float image_width_{224};
+    const float image_height_{172};
+    float image_aspect_ratio_{0};
+    
+    const float near_{0.1f};
+    const float far_{10000};
+
     std::string vertex_shader_2D_{""};
     std::string fragment_shader_2D_{""};
-    
+
+    // GUI mouse controls for user movement.
+    GUIMouseControls mouse_controls_;
+
+    // Model view projection matrix used in the renderer.
+    Eigen::Matrix4f model_view_projection_;
+    Eigen::Matrix4f projection_;
+    Eigen::Matrix4f model_view_;
+
+    // For rendering the indices of the coordinate system.
+    int index_indices_coordinate_system_ = 0;
+
+    // Shaders for rendering.
+    Shader3Dcolored shader_coordinate_system_;
     Shader2D shader_texture_;
+
     // Initialize GUI.
     void InitMainGUI(nanogui::Window* window);
     // Prepare shaders and initialize buffers.
     void InitShaders();
+    // Init Shader for drawing a coordiante system.
+    void InitCoordinateSystem();
     // Renders 2D texture.
     void Render2DTexture();
-    // Bind OpenCV texture to OpenGL buffer.
-    bool BindCVMat2GLTexture(const cv::Mat& image, GLuint& imageTexture, bool conv) const;
+    // Renders Coordinate System.
+    void RenderCoordinateSystem();
+    // Computes current poses for rendering.
+    void UpdatePose();
 public:
     GUIApplication();
     ~GUIApplication();

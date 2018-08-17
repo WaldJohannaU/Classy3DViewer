@@ -28,4 +28,9 @@ public:
     void Init(const std::string& name);
 };
 
+class Shader3Dcolored: public Shader {
+public:
+    void Init(const std::string& name);
+};
+
 #endif

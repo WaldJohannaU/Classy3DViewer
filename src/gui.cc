@@ -24,6 +24,7 @@
 #include <dirent.h>
 
 #include "gui.h"
+#include "util.h"
 
 void GUIApplication::InitMainGUI(nanogui::Window* window) {
     window->setPosition(nanogui::Vector2i(15, 15));
@@ -36,6 +37,65 @@ void GUIApplication::InitMainGUI(nanogui::Window* window) {
 
 void GUIApplication::InitShaders() {
     shader_texture_.Init("texture_shader");
+    InitCoordinateSystem();
+}
+
+void GUIApplication::InitCoordinateSystem() {
+    const int counter{10};
+    const float distance{1.0f};
+    const int indices_size{3 + 2*counter};
+    const int line_size{6 + 4*counter};
+    
+    nanogui::MatrixXu indices_grid(2, indices_size);
+    nanogui::MatrixXf positions_grid(3, line_size);
+    nanogui::MatrixXf color_grid(3, line_size);
+    
+    index_indices_coordinate_system_ = 0;
+    int index_positions = 0;
+    int index_color = 0;
+    
+    const Eigen::Vector3f grid_color(0.72f, 0.72f, 0.72f);
+    const Eigen::Vector3f camera_trajectory(0.0f, 0.0f, 0.0f);
+    
+    // Coordinte System
+    positions_grid.col(index_positions++) << 0, 0, distance*counter;
+    positions_grid.col(index_positions++) << 0, 0, 0;
+    color_grid.col(index_color++) << 0, 0, 1;
+    color_grid.col(index_color++) << 0, 0, 1;
+    indices_grid.col(index_indices_coordinate_system_++) << index_positions-2, index_positions-1;
+        
+    positions_grid.col(index_positions++) << 0, distance*counter, 0;
+    positions_grid.col(index_positions++) << 0, 0, 0;
+    color_grid.col(index_color++) << 0, 1, 0;
+    color_grid.col(index_color++) << 0, 1, 0;
+    indices_grid.col(index_indices_coordinate_system_++) << index_positions-2, index_positions-1;
+        
+    positions_grid.col(index_positions++) << distance*counter, 0, 0;
+    positions_grid.col(index_positions++) << 0, 0, 0;
+    color_grid.col(index_color++) << 1, 0, 0;
+    color_grid.col(index_color++) << 1, 0, 0;
+    indices_grid.col(index_indices_coordinate_system_++) << index_positions-2, index_positions-1;
+    
+    for (int i = 1; i <= counter; i++) {
+        color_grid.col(index_color++) << grid_color;
+        color_grid.col(index_color++) << grid_color;
+        color_grid.col(index_color++) << grid_color;
+        color_grid.col(index_color++) << grid_color;
+        
+        positions_grid.col(index_positions++) << 0, i*distance, 0;
+        positions_grid.col(index_positions++) << counter*distance, i*distance, 0;
+        positions_grid.col(index_positions++) << i*distance, 0, 0;
+        positions_grid.col(index_positions++) << i*distance, counter*distance, 0;
+        
+        indices_grid.col(index_indices_coordinate_system_++) << index_positions-4, index_positions-3;
+        indices_grid.col(index_indices_coordinate_system_++) << index_positions-2, index_positions-1;
+    }
+
+    shader_coordinate_system_.Init("shader_coordinate_system");
+    shader_coordinate_system_.shader_.bind();
+    shader_coordinate_system_.shader_.uploadIndices(indices_grid);
+    shader_coordinate_system_.shader_.uploadAttrib("position", positions_grid);
+    shader_coordinate_system_.shader_.uploadAttrib("color", color_grid);
 }
 
 void GUIApplication::Render2DTexture() {
@@ -48,14 +108,21 @@ void GUIApplication::Render2DTexture() {
      shader_texture_.shader_.drawIndexed(GL_TRIANGLES, 0, 2);*/
 }
 
-bool GUIApplication::BindCVMat2GLTexture(const cv::Mat& image, GLuint& texture, bool conv) const {
-    if (!image.empty()) {
-        glGenTextures(1, &texture);
-        glBindTexture(GL_TEXTURE_2D, texture);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, image.cols, image.rows, 0, GL_BGR, GL_UNSIGNED_BYTE, image.ptr());
-        return true;
-    } else return false;
+void GUIApplication::RenderCoordinateSystem() {
+    shader_coordinate_system_.shader_.bind();
+    shader_coordinate_system_.shader_.setUniform("model_view_projection", model_view_projection_);
+    shader_coordinate_system_.shader_.drawIndexed(GL_LINES, 0, index_indices_coordinate_system_);
+}
+
+void GUIApplication::UpdatePose() {
+    mouse_controls_.Update();
+    
+    // Update pose for rendering.
+    const double gui_camera_fovy_x = 2 * atan((image_width_)/(2*f_x_));
+    const double gui_camera_fovy_y = 2 * atan((image_height_)/(2*f_y_));
+    projection_ = perspective<Eigen::Matrix4f::Scalar>(gui_camera_fovy_x, gui_camera_fovy_y, near_, far_);
+    model_view_ = mouse_controls_.view_;
+    model_view_projection_ = projection_ * model_view_;
 }
 
 GUIApplication::GUIApplication(): nanogui::Screen(Eigen::Vector2i(100, 100), "Classy3DViewer") {
@@ -68,6 +135,7 @@ GUIApplication::GUIApplication(): nanogui::Screen(Eigen::Vector2i(100, 100), "Cl
 
 GUIApplication::~GUIApplication() {
     shader_texture_.shader_.free();
+    shader_coordinate_system_.shader_.free();
 }
 
 void GUIApplication::draw(NVGcontext *ctx) {
@@ -78,7 +146,10 @@ void GUIApplication::draw(NVGcontext *ctx) {
 void GUIApplication::drawContents() {
     glDisable(GL_CULL_FACE);
     glDisable(GL_DEPTH_TEST);
+    UpdatePose();
+    
     Render2DTexture();
+    RenderCoordinateSystem();
 }
 
 bool GUIApplication::keyboardEvent(int key, int scancode, int action, int modifiers) {
