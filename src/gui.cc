@@ -34,22 +34,8 @@ void GUIApplication::InitMainGUI(nanogui::Window* window) {
     });
 }
 
-void GUIApplication::Init2DTexture() {
-    unsigned int indices[] = {0, 1, 2, 2, 3, 0};
-    float vertices[] = {-1, -1, 1, 1, -1, 1, 1,  1, 1, -1,  1, 1};
-    float uvs[] = {0, 1, 1, 1, 1, 0, 0, 0};
-    float uvs_flipped[] = {1, 0, 0, 0, 0, 1, 1, 1};
-    
-    Eigen::Map<nanogui::MatrixXf> v_vertices(vertices,3,4);
-    Eigen::Map<nanogui::MatrixXf> v_uvs(uvs,2,4);
-    Eigen::Map<nanogui::MatrixXf> v_uvs_flipped(uvs_flipped,2,4);
-    Eigen::Map<nanogui::MatrixXu> v_indices(indices,3,2);
-    
+void GUIApplication::InitShaders() {
     shader_texture_.Init("texture_shader");
-    shader_texture_.shader_.bind();
-    shader_texture_.shader_.uploadIndices(v_indices);
-    shader_texture_.shader_.uploadAttrib("position", v_vertices);
-    shader_texture_.shader_.uploadAttrib("vertexUV", v_uvs);
 }
 
 void GUIApplication::Render2DTexture() {
@@ -76,7 +62,7 @@ GUIApplication::GUIApplication(): nanogui::Screen(Eigen::Vector2i(100, 100), "Cl
     this->setSize(nanogui::Vector2i(window_width_, window_height_));
     nanogui::Window *window = new nanogui::Window(this, "GUI");
     InitMainGUI(window);
-    Init2DTexture();
+    InitShaders();
     performLayout();
 }
 

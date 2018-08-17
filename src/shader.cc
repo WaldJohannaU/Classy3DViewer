@@ -34,6 +34,21 @@ void Shader2D::Init(const std::string& name) {
         "    color = vec4(texture(myTextureSampler, UV).rgb, 1.0);\n"
         "}";
         shader_.init(name, vertex, fragment);
+        
+        unsigned int indices[] = {0, 1, 2, 2, 3, 0};
+        float vertices[] = {-1, -1, 1, 1, -1, 1, 1,  1, 1, -1,  1, 1};
+        float uvs[] = {0, 1, 1, 1, 1, 0, 0, 0};
+        float uvs_flipped[] = {1, 0, 0, 0, 0, 1, 1, 1};
+        
+        Eigen::Map<nanogui::MatrixXf> v_vertices(vertices,3,4);
+        Eigen::Map<nanogui::MatrixXf> v_uvs(uvs,2,4);
+        Eigen::Map<nanogui::MatrixXf> v_uvs_flipped(uvs_flipped,2,4);
+        Eigen::Map<nanogui::MatrixXu> v_indices(indices,3,2);
+
+        shader_.bind();
+        shader_.uploadIndices(v_indices);
+        shader_.uploadAttrib("position", v_vertices);
+        shader_.uploadAttrib("vertexUV", v_uvs);
         initalized_ = true;
     }
 }

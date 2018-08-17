@@ -37,8 +37,8 @@ private:
     Shader2D shader_texture_;
     // Initialize GUI.
     void InitMainGUI(nanogui::Window* window);
-    // Prepare shader and initialize buffers for 2D texture rendering.
-    void Init2DTexture();
+    // Prepare shaders and initialize buffers.
+    void InitShaders();
     // Renders 2D texture.
     void Render2DTexture();
     // Bind OpenCV texture to OpenGL buffer.
