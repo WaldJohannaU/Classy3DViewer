@@ -29,7 +29,9 @@ SET(SRCS src/main.cc
 	src/shader.h
 	src/shader.cc
 	src/gui.h
-	src/gui.cc)
+	src/gui.cc
+	src/mouse_controls.h
+	src/mouse_controls.cc)
 
 SET(PROJECT_LIBRARIES 
 	${OpenCV_LIBS} 
